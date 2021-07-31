@@ -19,7 +19,7 @@ class StopTrainingOnMeanRewardOverLastEpisodes(BaseCallback):
     """
     Callback used for stopping the training after achieving mean reward over last episodes
     """
-    def __init__(self, check_freq: int = 1000, log_dir: str = "logs/ppo/LunarLanderContinuous-v2_1/", verbose: int = 1, n_episodes: int = 150, mean_reward: int = 200):
+    def __init__(self, check_freq: int = 1000, log_dir: str = "logs/", verbose: int = 1, n_episodes: int = 120, mean_reward: int = 200):
         super(StopTrainingOnMeanRewardOverLastEpisodes, self).__init__(verbose)
         self.check_freq = check_freq
         self.log_dir = log_dir
@@ -34,11 +34,14 @@ class StopTrainingOnMeanRewardOverLastEpisodes(BaseCallback):
             if len(x) > 0:
                 # Mean training reward over the last 100 episodes
                 mean_reward_over_episodes = np.mean(y[-self.n_episodes:])
-                if mean_reward_over_episodes > self.mean_reward:
+                if mean_reward_over_episodes >= self.mean_reward:
                     if self.verbose > 0:
                         print(f"Mean reward over {self.n_episodes} episodes is {mean_reward_over_episodes:.2f} bigger than configured mean reward threshold {self.mean_reward:.2f}, aborting training.")
                         print(f"Number of episodes for training: {len(x)}, Number of env steps for training: {self.num_timesteps}")
                     return False  # abort training
+                else:
+                    if self.verbose > 0:
+                        print(f"Mean reward over {self.n_episodes} episodes is {mean_reward_over_episodes:.2f}.")
 
         return True  # continue training
 

@@ -345,7 +345,7 @@ class ExperimentManager(object):
         if "env_wrapper" in hyperparams.keys():
             del hyperparams["env_wrapper"]
 
-        callbacks = get_callback_list(hyperparams)
+        callbacks = get_callback_list(hyperparams, log_dir=self.save_path)
         if "callback" in hyperparams.keys():
             del hyperparams["callback"]
 

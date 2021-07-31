@@ -17,6 +17,7 @@ from utils.utils import StoreDict
 
 def main():  # noqa: C901
     parser = argparse.ArgumentParser()
+    parser.add_argument("--n-episodes", help="Number of episodes", type=int, default=None)
     parser.add_argument("--env", help="environment ID", type=str, default="CartPole-v1")
     parser.add_argument("-f", "--folder", help="Log folder", type=str, default="rl-trained-agents")
     parser.add_argument("--algo", help="RL Algorithm", default="ppo", type=str, required=False, choices=list(ALGOS.keys()))
@@ -178,6 +179,8 @@ def main():  # noqa: C901
     deterministic = not stochastic
 
     state = None
+    num_episodes_played = 0
+    num_episodes = args.n_episodes
     episode_reward = 0.0
     episode_rewards, episode_lengths = [], []
     ep_len = 0
@@ -185,6 +188,11 @@ def main():  # noqa: C901
     successes = []
     try:
         for _ in range(args.n_timesteps):
+            if num_episodes:
+                if num_episodes_played >= num_episodes:
+                    print(f"Done playing {num_episodes_played}/{num_episodes} episodes. Aborting play.")
+                    break
+
             action, state = model.predict(obs, state=state, deterministic=deterministic)
             obs, reward, done, infos = env.step(action)
             if not args.no_render:
@@ -212,6 +220,7 @@ def main():  # noqa: C901
                     episode_reward = 0.0
                     ep_len = 0
                     state = None
+                    num_episodes_played += 1
 
                 # Reset also when the goal is achieved when using HER
                 if done and infos[0].get("is_success") is not None:

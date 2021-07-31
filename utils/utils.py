@@ -111,7 +111,7 @@ def get_wrapper_class(hyperparams: Dict[str, Any]) -> Optional[Callable[[gym.Env
         return None
 
 
-def get_callback_list(hyperparams: Dict[str, Any]) -> List[BaseCallback]:
+def get_callback_list(hyperparams: Dict[str, Any], log_dir=None) -> List[BaseCallback]:
     """
     Get one or more Callback class specified as a hyper-parameter
     "callback".
@@ -161,6 +161,8 @@ def get_callback_list(hyperparams: Dict[str, Any]) -> List[BaseCallback]:
                 kwargs = callback_dict[callback_name]
             else:
                 kwargs = {}
+            if get_class_name(callback_name) == "StopTrainingOnMeanRewardOverLastEpisodes":
+                kwargs['log_dir'] = log_dir
             callback_module = importlib.import_module(get_module_name(callback_name))
             callback_class = getattr(callback_module, get_class_name(callback_name))
             callbacks.append(callback_class(**kwargs))
