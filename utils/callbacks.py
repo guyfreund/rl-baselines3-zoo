@@ -19,13 +19,17 @@ class StopTrainingOnMeanRewardOverLastEpisodes(BaseCallback):
     """
     Callback used for stopping the training after achieving mean reward over last episodes
     """
-    def __init__(self, check_freq: int = 1000, log_dir: str = "logs/", verbose: int = 1, n_episodes: int = 120, mean_reward: int = 200):
+    def __init__(self, check_freq: int = 1000, log_dir: str = "logs/", verbose: int = 1, n_episodes: int = 120,
+                 mean_reward: int = 200, stop_episode: int = 400, stop_on_episode: bool = False):
         super(StopTrainingOnMeanRewardOverLastEpisodes, self).__init__(verbose)
         self.check_freq = check_freq
         self.log_dir = log_dir
         self.verbose = verbose
         self.n_episodes = n_episodes
         self.mean_reward = mean_reward
+        self.stop_episode = stop_episode
+        self.stop_on_episode = stop_on_episode
+        self.trained_episodes = 0
 
     def _on_step(self) -> bool:
         if self.n_calls % self.check_freq == 0:  # perform reading from files every check_freq steps only
@@ -42,6 +46,14 @@ class StopTrainingOnMeanRewardOverLastEpisodes(BaseCallback):
                 else:
                     if self.verbose > 0:
                         print(f"Mean reward over {self.n_episodes} episodes is {mean_reward_over_episodes:.2f}.")
+
+        # abort on reaching max episodes
+        if self.stop_on_episode:
+            done_array = np.array(self.locals.get("done") if self.locals.get("done") is not None else self.locals.get("dones"))
+            self.trained_episodes += np.sum(done_array).item()
+            if self.trained_episodes >= self.stop_episode:
+                print(f"trained over {self.trained_episodes}/{self.stop_episode} episodes. aborting, training.")
+                return False
 
         return True  # continue training
 
