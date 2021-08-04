@@ -55,6 +55,25 @@ class StopTrainingOnMeanRewardOverLastEpisodes(BaseCallback):
                 print(f"trained over {self.trained_episodes}/{self.stop_episode} episodes. aborting, training.")
                 return False
 
+        if self.model is not None:
+            def decrease_epsilon(num_timesteps, logger):
+                if num_timesteps <= 50:
+                    epsilon = 0.5
+                elif num_timesteps <= 100:
+                    epsilon = 0.3
+                elif num_timesteps <= 300:
+                    epsilon = 0.2
+                elif num_timesteps <= 500:
+                    epsilon = 0.1
+                elif num_timesteps <= 1000:
+                    epsilon = 0.05
+                else:
+                    epsilon = 0.01
+                logger.record('epsilon', epsilon)
+                return epsilon
+
+            self.model.exploration_rate = decrease_epsilon(self.num_timesteps, self.model.logger)
+
         return True  # continue training
 
 
