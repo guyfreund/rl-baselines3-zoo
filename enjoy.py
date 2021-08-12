@@ -13,7 +13,9 @@ import utils.import_envs  # noqa: F401 pylint: disable=unused-import
 from utils import ALGOS, create_test_env, get_latest_run_id, get_saved_hyperparams
 from utils.exp_manager import ExperimentManager
 from utils.utils import StoreDict
+from stable_baselines3.common.monitor import ResultsWriter
 
+import subprocess
 
 def main():  # noqa: C901
     parser = argparse.ArgumentParser()
@@ -70,16 +72,7 @@ def main():  # noqa: C901
     env_id = args.env
     algo = args.algo
     folder = args.folder
-
-    if args.exp_id == 0:
-        args.exp_id = get_latest_run_id(os.path.join(folder, algo), env_id)
-        print(f"Loading latest experiment, id={args.exp_id}")
-
-    # Sanity checks
-    if args.exp_id > 0:
-        log_path = os.path.join(folder, algo, f"{env_id}_{args.exp_id}")
-    else:
-        log_path = os.path.join(folder, algo)
+    log_path = folder
 
     assert os.path.isdir(log_path), f"The {log_path} folder was not found"
 
@@ -178,6 +171,9 @@ def main():  # noqa: C901
     stochastic = args.stochastic or is_atari and not args.deterministic
     deterministic = not stochastic
 
+    num_actions = '4'
+    results_writer = ResultsWriter(filename=f'{algo}_{num_actions}_enjoy_monitor.csv')
+
     state = None
     num_episodes_played = 0
     num_episodes = args.n_episodes
@@ -217,6 +213,8 @@ def main():  # noqa: C901
                     print("Episode Length", ep_len)
                     episode_rewards.append(episode_reward)
                     episode_lengths.append(ep_len)
+                    ep_info = {"r": round(episode_reward, 6), "l": ep_len, "t": "0"}
+                    results_writer.write_row(ep_info)
                     episode_reward = 0.0
                     ep_len = 0
                     state = None
@@ -233,6 +231,8 @@ def main():  # noqa: C901
 
     except KeyboardInterrupt:
         pass
+    finally:
+        results_writer.close()
 
     if args.verbose > 0 and len(successes) > 0:
         print(f"Success rate: {100 * np.mean(successes):.2f}%")
