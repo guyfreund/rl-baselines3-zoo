@@ -84,7 +84,7 @@ def main():  # noqa: C901
             break
 
     if args.load_best:
-        model_path = os.path.join(log_path, env_id, "best_model.zip")
+        model_path = os.path.join(log_path, "best_model.zip")
         found = os.path.isfile(model_path)
 
     if args.load_checkpoint is not None:
@@ -171,9 +171,7 @@ def main():  # noqa: C901
     stochastic = args.stochastic or is_atari and not args.deterministic
     deterministic = not stochastic
 
-    run_command = subprocess.Popen(["git", "branch", "--show-current"], stdout=subprocess.PIPE)
-    git_branch = run_command.communicate()[0]
-    num_actions = '8' if '8' in str(git_branch) else '4'
+    num_actions = '8'
     results_writer = ResultsWriter(filename=f'{algo}_{num_actions}_enjoy_monitor.csv')
 
     state = None
