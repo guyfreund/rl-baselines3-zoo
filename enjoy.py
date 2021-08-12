@@ -84,7 +84,7 @@ def main():  # noqa: C901
             break
 
     if args.load_best:
-        model_path = os.path.join(log_path, "best_model.zip")
+        model_path = os.path.join(log_path, env_id, "best_model.zip")
         found = os.path.isfile(model_path)
 
     if args.load_checkpoint is not None:
